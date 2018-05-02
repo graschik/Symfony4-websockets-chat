@@ -1,0 +1,21 @@
+{% extends 'base.html.twig' %}
+
+{% block section_title %}Регистрация{% endblock %}
+
+{% block form %}
+    {{ form_start(form, {
+        'action': path('signup'),
+        'method': 'POST',
+        'attr':{novalidate:'novalidate'},
+    }) }}
+    <div class="form-group">
+        {{ form_row(form.username) }}
+    </div>
+    <div class="form-group">
+        {{ form_row(form.plainPassword) }}
+    </div>
+    {{ form_widget(form.confirm, {
+        'attr': {'class': 'btn btn-success'},
+    }) }}
+    {{ form_end(form) }}
+{% endblock %}
