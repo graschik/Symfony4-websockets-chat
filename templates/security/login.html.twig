@@ -1,0 +1,35 @@
+{% extends 'base.html.twig' %}
+
+{% block section_title %}Авторизация{% endblock %}
+
+{% block form %}
+    {{ form_start(form, {
+        'action': path('login'),
+        'method': 'POST',
+        'attr':{novalidate:'novalidate'},
+    }) }}
+    {% if authenticationError is defined and authenticationError  %}
+        <div class="alert alert-danger" role="alert">{{ authenticationError.messageKey|trans(authenticationError.messageData, 'security') }}</div>
+    {% endif %}
+
+    <div class="form-group">
+        {{ form_label(form.username) }}
+        {{ form_errors(form.username) }}
+
+        {{ form_widget(form.username,{
+            'value': lastUsername,
+        }) }}
+    </div>
+    <div class="form-group">
+        {{ form_row(form.password) }}
+    </div>
+    <div class="form-group">
+        {{ form_label(form.remember_me) }}
+        {{ form_widget(form.remember_me) }}
+    </div>
+    {{ form_widget(form.save, {
+        'attr': {'class': 'btn btn-success'},
+    }) }}
+
+    {{ form_end(form) }}
+{% endblock %}
