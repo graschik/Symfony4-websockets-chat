@@ -31,3 +31,7 @@ services:
         arguments:
             - 'mysql:dbname=sessions'
             - { db_table: sessions, db_username: mysql, db_password: mysql }
+
+    App\Event\ActivityListener:
+        tags:
+            - { name: 'kernel.event_listener', event: 'kernel.controller', method: onCoreController }

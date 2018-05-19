@@ -4,14 +4,22 @@
 
 {% block chat %}
     <h1>Public chat</h1>
+    <a href="vk.com">vk.com</a>
     <ul id="chat-list"></ul>
     <hr>
     <textarea id="form-message" placeholder="Your public message here"></textarea>
     <input type="button" id="form-submit" value="Send message"/>
+
+    <p id="who-is-online">
+        <strong>Utilisateurs en ligne ({{ users|length }}) :</strong>
+        {% for user in users %}
+            {{ user.getUsername }}
+        {% endfor %}
+    </p>
+
     <script>
         // This object will be sent everytime you submit a message in the sendMessage function.
         var clientInformation = {
-            username: new Date().getTime().toString()
             // You can add more information in a static object
         };
 
@@ -22,6 +30,7 @@
          * @type WebSocket
          */
         var conn = new WebSocket('ws://127.0.0.1:8080');
+
 
         conn.onopen = function(e) {
             console.info("Connection established succesfully");
@@ -47,6 +56,7 @@
 
             if(!msg){
                 alert("Please send something on the chat");
+                return false;
             }
 
             Chat.sendMessage(msg);
@@ -56,27 +66,18 @@
 
         // Mini API to send a message with the socket and append a message in a UL element.
         var Chat = {
-            appendMessage: function(username,message){
-                var from;
+            appendMessage: function(username, message){
 
-                if(username == clientInformation.username){
-                    from = "me";
-                }else{
-                    from = clientInformation.username;
-                }
-
-                // Append List Item
                 var ul = document.getElementById("chat-list");
                 var li = document.createElement("li");
-                li.appendChild(document.createTextNode(from + " : "+ message));
+
+                li.appendChild(document.createTextNode(username+':'+message));
                 ul.appendChild(li);
             },
             sendMessage: function(text){
-                clientInformation.message = text;
-                // Send info as JSON
-                conn.send(JSON.stringify(clientInformation));
+                conn.send(text);
                 // Add my own message to the list
-                this.appendMessage(clientInformation.username, clientInformation.message);
+                //this.appendMessage(clientInformation.message);
             }
         };
     </script>

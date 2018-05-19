@@ -43,6 +43,41 @@ class User implements UserInterface
     private $roles = [];
 
     /**
+     * Date/Time of the last activity
+     *
+     * @var \Datetime
+     * @ORM\Column(name="last_activity_at", type="datetime", nullable=true)
+     */
+    protected $lastActivity;
+
+    /**
+     * @param \Datetime $lastActivityAt
+     */
+    public function setLastActivity($lastActivityAt)
+    {
+        $this->lastActivity = $lastActivityAt;
+    }
+
+    /**
+     * @return \Datetime
+     */
+    public function getLastActivity()
+    {
+        return $this->lastActivity;
+    }
+
+    /**
+     * @return Bool Whether the user is active or not
+     */
+    public function isActiveNow()
+    {
+        // Delay during wich the user will be considered as still active
+        $delay = new \DateTime('30 seconds ago');
+
+        return ($this->getLastActivity() > $delay);
+    }
+
+    /**
      * @return mixed
      */
     public function getId()

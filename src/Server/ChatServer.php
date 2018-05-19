@@ -2,28 +2,36 @@
 
 namespace App\Server;
 
+use App\Entity\User;
+use Doctrine\ORM\EntityManagerInterface;
 use Psr\Http\Message\RequestInterface;
 use Ratchet\Http\HttpServerInterface;
 use Ratchet\ConnectionInterface;
+use Symfony\Component\Validator\Constraints\DateTime;
 
 class ChatServer implements HttpServerInterface
 {
     protected $clients;
 
-    public function __construct()
+    private $entityManager;
+
+    public function __construct(EntityManagerInterface $entityManager)
     {
         $this->clients = new \SplObjectStorage;
+        $this->entityManager = $entityManager;
     }
 
-    public function onOpen(ConnectionInterface $conn, RequestInterface $request=null)
+    public function onOpen(ConnectionInterface $conn, RequestInterface $request = null)
     {
-        if($conn->Session->get('current_user_id')==null)
-            $conn->close();
-        print("new conection (". $conn->Session->get('current_user_id').")");
-        // Store the new connection to send messages to later
-        $this->clients->attach($conn);
+        try {
+            print("new conection (" . $conn->Session->get('current_user_id') . ")");
+            // Store the new connection to send messages to later
+            $this->clients->attach($conn);
 
-        echo "New connection! ({$conn->resourceId})\n";
+            echo "New connection! ({$conn->resourceId})\n";
+        } catch (\Throwable $exception) {
+            echo $exception->getMessage() . ' Shokovo!';
+        }
     }
 
     public function onMessage(ConnectionInterface $from, $msg)
@@ -32,11 +40,25 @@ class ChatServer implements HttpServerInterface
         echo sprintf('Connection %d sending message "%s" to %d other connection%s' . "\n"
             , $from->resourceId, $msg, $numRecv, $numRecv == 1 ? '' : 's');
 
+        $user = $this->entityManager
+            ->getRepository(User::class)
+            ->find($from->Session->get('current_user_id'));
+
+        $user->setLastActivity(new DateTime());
+
+        $pattern = "/^((https?|ftp)\:\/\/)?([a-z0-9]{1})((\.[a-z0-9-])|([a-z0-9-]))*\.([a-z]{2,6})(\/?)$/";
+        $replace = "<a href=\"\\0\">\\0</a>";
+        $result = preg_replace($pattern, $replace, $msg);
+        echo $result;
+
+        //$array=json_decode($msg);
+
+        $message['message'] = $result;
+        $message['username'] = $user->getUsername();
+
         foreach ($this->clients as $client) {
-            if ($from !== $client) {
-                // The sender is not the receiver, send to each client connected
-                $client->send($msg);
-            }
+            // The sender is not the receiver, send to each client connected
+            $client->send(json_encode($message));
         }
     }
 
