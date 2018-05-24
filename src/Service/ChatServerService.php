@@ -1,15 +1,137 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: allse
- * Date: 21.05.2018
- * Time: 19:55
- */
 
 namespace App\Service;
 
 
-class ChatServeService
-{
+use App\Entity\Message;
+use App\Entity\User;
+use Doctrine\ORM\EntityManagerInterface;
+use Ratchet\ConnectionInterface;
 
+class ChatServerService
+{
+    private $entityManager;
+
+    private $userService;
+
+    public const MESSAGE_TOPIC = 'message';
+
+    public const USER_CONNECTED_TOPIC = 'user_connected';
+
+    public const USER_DISCONNECTED_TOPIC = 'user_disconnected';
+
+    public const USERS_ONLINE = 'users_online';
+
+    /**
+     * ChatServerService constructor.
+     * @param EntityManagerInterface $entityManager
+     * @param UserService $userService
+     */
+    public function __construct(EntityManagerInterface $entityManager, UserService $userService)
+    {
+        $this->entityManager = $entityManager;
+        $this->userService = $userService;
+    }
+
+    /**
+     * @param ConnectionInterface $connection
+     * @param Message $message
+     * @return string
+     */
+    public function getInformationForSending(ConnectionInterface $connection, Message $message): string
+    {
+        $user = $this->userService->getUserById(
+            $connection->Session->get('current_user_id')
+        );
+
+        $information['topic'] = self::MESSAGE_TOPIC;
+        $information['username'] = $user->getUsername();
+        $information['message'] = $message->getText();
+        $information['date'] = $message->getDate();
+
+        return json_encode($information);
+    }
+
+    /**
+     * @param ConnectionInterface $connection
+     * @param string $text
+     * @return Message
+     */
+    public function getMessage(ConnectionInterface $connection, string $text): Message
+    {
+        $message = new Message();
+        $message->setText($this->prepareText($text));
+        $message->setDate((new \DateTime('now')));
+        $message->setUserId($connection->Session->get('current_user_id'));
+
+        return $message;
+    }
+
+    /**
+     * @param \SplObjectStorage $connections
+     * @return string
+     */
+    public function getUsersOnlineInformation(\SplObjectStorage $connections): string
+    {
+        $information['topic'] = self::USERS_ONLINE;
+
+        $connections = $this->getUniqueUsers($connections);
+        
+        foreach ($connections as $connection) {
+            $user = $this->entityManager
+                ->getRepository(User::class)
+                ->find(
+                    $connection->Session->get('current_user_id')
+                );
+            $information['users'][] = $user->getUsername();
+        }
+        return json_encode($information);
+    }
+
+    /**
+     * @param \SplObjectStorage $connections
+     * @return \SplObjectStorage
+     */
+    public function getUniqueUsers(\SplObjectStorage $connections): \SplObjectStorage
+    {
+        $uniqueUsers = new \SplObjectStorage();
+
+        foreach ($connections as $connection) {
+            foreach ($uniqueUsers as $uniqueUser) {
+                if ($uniqueUser->Session->get('current_user_id') == $connection->Session->get('current_user_id')) {
+                    break 2;
+                }
+            }
+            $uniqueUsers->attach($connection);
+        }
+
+        return $uniqueUsers;
+    }
+
+    /**
+     * @param string $text
+     * @return string
+     */
+    public function prepareText(string $text): string
+    {
+        $text = trim($text);
+
+        $func = function ($matches) {
+            if (preg_match('/https?/ix', $matches[1])) {
+                $link = $matches[1];
+                return "<a href=\"$link\">$link</a>";
+            } else {
+                $link = $matches[1];
+                return "<a href=\"http://$link\">$link</a>";
+            }
+        };
+
+        return preg_replace_callback(
+            '/(?=(([\w\/\/:.]+)\.(?:com|net|org|info|no|dk|se|by|ru)))\b(?:(?:https?|ftp|file):\/\/|(?:www\.|ftp\.)?)
+            (?:\([-A-Z0-9+&@#\/%=~_|$?!:,.]*\)|[-A-Z0-9+&@#\/%=~_|$?!:,.])*
+            (?:\([-A-Z0-9+&@#\/%=~_|$?!:,.]*\)|[A-Z0-9+&@#\/%=~_|$])/ix',
+            $func,
+            $text
+        );
+    }
 }
