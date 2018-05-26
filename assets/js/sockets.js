@@ -9,21 +9,21 @@ window.onload = function () {
     };
 
     socket.onclose = function (event) {
-        // if (event.wasClean) {
-        //     status.innerHTML += 'Соединение закрыто';
-        // } else {
-        //     status.innerHTML += 'Соединение закрыто';
-        // }
-        // status.innerHTML += '<br>Код: ' + event.code + ' Причина: ' + event.reason;
+        if (event.wasClean) {
+            status.innerHTML += 'Соединение закрыто';
+        } else {
+            status.innerHTML += 'Соединение закрыто';
+        }
+        status.innerHTML += '<br>Код: ' + event.code + ' Причина: ' + event.reason;
     };
 
     socket.onmessage = function (event) {
         var message = JSON.parse(event.data);
         switch (message.topic) {
             case 'users_online':
-                users_status.innerHTML="";
+                users_status.innerHTML = "";
                 for (var i = 0; i < message.users.length; i++) {
-                    users_status.innerHTML+=`
+                    users_status.innerHTML += `
                         <div class="panel individual_user_online">
                                 <i class="glyphicon glyphicon-ok-sign"></i> ${message.users[i]}
                             </div>
@@ -54,7 +54,7 @@ window.onload = function () {
     };
 
     socket.onerror = function (event) {
-        //alert("Error: something went wrong with the socket.");
+        alert("Error: something went wrong with the socket.");
         console.error(e);
     };
 
@@ -67,8 +67,14 @@ window.onload = function () {
         return false;
     }
 
-    $('#myButton').on('click', function(event) {
-        var message=$('#text-for-sending').val();
+    $('#myButton').on('click', function (event) {
+        var message = $('#text-for-sending').val();
+
+        if (!socket) {
+            alert('asdasd');
+            console.log('VSE Ne och!');
+            socket=new WebSocket('ws://127.0.0.1:8080');
+        }
         socket.send(message);
 
         return false;

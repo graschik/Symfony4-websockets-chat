@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\User;
+use App\Service\UserService;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -18,17 +19,15 @@ class HomeController extends Controller
      * @param Request $request
      * @return Response
      */
-    public function homeAction(Request $request)
+    public function homeAction(Request $request, UserService $userService)
     {
         //phpinfo();
         $session = new Session();
         if ($this->getUser())
             $session->set('current_user_id', $this->getUser()->getId());
 
-        $users = $this->getDoctrine()->getManager()->getRepository(User::class)->getActive();
-
         return $this->render('chat/chat.html.twig', [
-            'users' => $users,
+            'user' => $userService->getUserById($this->getUser()->getId()),
         ]);
     }
 }

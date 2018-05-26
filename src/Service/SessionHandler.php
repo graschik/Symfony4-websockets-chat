@@ -12,15 +12,19 @@ class SessionHandler extends PdoSessionHandler
 
     private $options;
 
+    private $dbConnection;
+
     /**
      * SessionHandler constructor.
+     * @param array $dbConnection
      * @param null $pdoOrDsn
      * @param array $options
      */
-    public function __construct($pdoOrDsn = null, array $options = array())
+    public function __construct(array $dbConnection, $pdoOrDsn = null, array $options = array())
     {
         parent::__construct($pdoOrDsn, $options);
 
+        $this->dbConnection = $dbConnection;
         $this->pdoOrDsn = $pdoOrDsn;
         $this->options = $options;
     }
@@ -28,13 +32,12 @@ class SessionHandler extends PdoSessionHandler
     protected function doRead($sessionId)
     {
         try {
-            echo 'lol';
             return parent::doRead($sessionId);
         } catch (\Throwable $exception) {
             $this->pdoOrDsn = new PDO(
-                "mysql:host=localhost;dbname=sessions",
-                'mysql',
-                'mysql',
+                "mysql:host=$this->dbConnection['host'];dbname=$this->dbConnection['dbName']",
+                $this->dbConnection['dbUser'],
+                $this->dbConnection['dbPassword'],
                 [
                     PDO::ATTR_PERSISTENT => true
                 ]);

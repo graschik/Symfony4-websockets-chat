@@ -3,85 +3,85 @@
 {% block section_title %}Чат{% endblock %}
 
 {% block chat %}
-    <h1>Public chat</h1>
-    <a href="vk.com">vk.com</a>
-    <ul id="chat-list"></ul>
-    <hr>
-    <textarea id="form-message" placeholder="Your public message here"></textarea>
-    <input type="button" id="form-submit" value="Send message"/>
 
-    <p id="who-is-online">
-        <strong>Utilisateurs en ligne ({{ users|length }}) :</strong>
-        {% for user in users %}
-            {{ user.getUsername }}
-        {% endfor %}
-    </p>
+    <div class="container">
+        <div class="row">
+            <nav class="navbar navbar-default">
+                <div class="container-fluid">
+                    <div class="navbar-header">
+                        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
+                                data-target="#navbar"
+                                aria-expanded="false" aria-controls="navbar">
+                            <span class="sr-only">Toggle navigation</span>
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                        </button>
+                        <a class="navbar-brand" href="#">GraSCHat</a>
+                    </div>
+                    <div id="navbar" class="navbar-collapse collapse">
+                        <ul class="nav navbar-nav navbar-right">
+                            <li class="dropdown">
+                                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button"
+                                   aria-haspopup="true"
+                                   aria-expanded="false"><i class="glyphicon glyphicon-user"></i> {{ user.getUsername }} <img
+                                                src="{{ asset('build/images/8IRJarkKo3c.jpg') }}" alt="" class="round_navbar">
+                                    <span
+                                            class="caret"></span>
+                                </a>
+                                <ul class="dropdown-menu">
+                                    <li class="dropdown-header">Actions</li>
+                                    <li><a href="{{ path('logout') }}">Logout <i class="glyphicon glyphicon-log-out"></i> </a></li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div><!--/.nav-collapse -->
+                </div>
+            </nav>
 
-    <script>
-        // This object will be sent everytime you submit a message in the sendMessage function.
-        var clientInformation = {
-            // You can add more information in a static object
-        };
+            <div class="col-lg-3">
+                <div class="count_users">
+                    <div class="count">
+                        32 users online
+                    </div>
+                </div>
+                <div id="my_scroll_block_for_users">
+                    <div class="users_online" id="users_status">
 
-        // START SOCKET CONFIG
-        /**
-         * Note that you need to change the "sandbox" for the URL of your project.
-         * According to the configuration in Sockets/Chat.php , change the port if you need to.
-         * @type WebSocket
-         */
-        var conn = new WebSocket('ws://127.0.0.1:8080');
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-8">
+                <div class="message_block">
+                    <div id="my_scroll_block">
+                        <div id="status">
+
+                        </div>
+                    </div>
+                    <div class="input_field">
+                        <form class="form" name="messages">
+                            <div class="col-lg-10">
+                                <textarea placeholder="Input your message..." rows="20" id="text-for-sending" name="comment"
+                                          id="comment_text" cols="40" class="ui-autocomplete-input" autocomplete="off"
+                                          role="textbox" aria-autocomplete="list" aria-haspopup="true"></textarea>
+                            </div>
+                            <div class="col-lg-2">
+                                <button id="myButton" type="button" class="btn  glyphicon glyphicon-send glyphicon-lg btn-send  "
+                                        aria-label="Send" data-tttype="2"></button>
+                            </div>
+                            <input type="submit" style="display: none"/>
+                        </form>
+                    </div>
+                </div>
+            </div>
 
 
-        conn.onopen = function(e) {
-            console.info("Connection established succesfully");
-        };
+        </div>
 
-        conn.onmessage = function(e) {
-            var data = JSON.parse(e.data);
-            Chat.appendMessage(data.username, data.message);
+    </div>
 
-            console.log(data);
-        };
-
-        conn.onerror = function(e){
-            alert("Error: something went wrong with the socket.");
-            console.error(e);
-        };
-        // END SOCKET CONFIG
-
-
-        /// Some code to add the messages to the list element and the message submit.
-        document.getElementById("form-submit").addEventListener("click",function(){
-            var msg = document.getElementById("form-message").value;
-
-            if(!msg){
-                alert("Please send something on the chat");
-                return false;
-            }
-
-            Chat.sendMessage(msg);
-            // Empty text area
-            document.getElementById("form-message").value = "";
-        }, false);
-
-        // Mini API to send a message with the socket and append a message in a UL element.
-        var Chat = {
-            appendMessage: function(username, message){
-
-                var ul = document.getElementById("chat-list");
-                var li = document.createElement("li");
-
-                li.appendChild(document.createTextNode(username+':'+message));
-                ul.appendChild(li);
-            },
-            sendMessage: function(text){
-                conn.send(text);
-                // Add my own message to the list
-                //this.appendMessage(clientInformation.message);
-            }
-        };
-    </script>
 {% endblock %}
-{% block javascript %}
-
+{% block javascripts %}
+    {{ parent() }}
+    <script type="text/javascript" src="{{ asset('build/js/sockets.js') }}"></script>
 {% endblock %}

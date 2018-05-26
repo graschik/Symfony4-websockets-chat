@@ -5,6 +5,7 @@ namespace App\Service;
 
 use App\Entity\Message;
 use App\Entity\User;
+use Doctrine\Common\Persistence\ObjectManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Ratchet\ConnectionInterface;
 
@@ -16,18 +17,16 @@ class ChatServerService
 
     public const MESSAGE_TOPIC = 'message';
 
-    public const USER_CONNECTED_TOPIC = 'user_connected';
-
-    public const USER_DISCONNECTED_TOPIC = 'user_disconnected';
-
     public const USERS_ONLINE = 'users_online';
+
+    public const USER_ID = 'current_user_id';
 
     /**
      * ChatServerService constructor.
      * @param EntityManagerInterface $entityManager
      * @param UserService $userService
      */
-    public function __construct(EntityManagerInterface $entityManager, UserService $userService)
+    public function __construct(ObjectManager $entityManager, UserService $userService)
     {
         $this->entityManager = $entityManager;
         $this->userService = $userService;
@@ -41,7 +40,7 @@ class ChatServerService
     public function getInformationForSending(ConnectionInterface $connection, Message $message): string
     {
         $user = $this->userService->getUserById(
-            $connection->Session->get('current_user_id')
+            $connection->Session->get(self::USER_ID)
         );
 
         $information['topic'] = self::MESSAGE_TOPIC;
@@ -62,7 +61,7 @@ class ChatServerService
         $message = new Message();
         $message->setText($this->prepareText($text));
         $message->setDate((new \DateTime('now')));
-        $message->setUserId($connection->Session->get('current_user_id'));
+        $message->setUserId($connection->Session->get(self::USER_ID));
 
         return $message;
     }
@@ -76,12 +75,12 @@ class ChatServerService
         $information['topic'] = self::USERS_ONLINE;
 
         $connections = $this->getUniqueUsers($connections);
-        
+
         foreach ($connections as $connection) {
             $user = $this->entityManager
                 ->getRepository(User::class)
                 ->find(
-                    $connection->Session->get('current_user_id')
+                    $connection->Session->get(self::USER_ID)
                 );
             $information['users'][] = $user->getUsername();
         }
@@ -98,7 +97,7 @@ class ChatServerService
 
         foreach ($connections as $connection) {
             foreach ($uniqueUsers as $uniqueUser) {
-                if ($uniqueUser->Session->get('current_user_id') == $connection->Session->get('current_user_id')) {
+                if ($uniqueUser->Session->get(self::USER_ID) == $connection->Session->get(self::USER_ID)) {
                     break 2;
                 }
             }

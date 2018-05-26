@@ -4,8 +4,10 @@ namespace App\Command;
 
 use App\Server\ChatServer;
 use App\Service\PdoSessionHandlerService;
+use Doctrine\Common\Persistence\ManagerRegistry;
 use Doctrine\ORM\EntityManagerInterface;
 use Ratchet\Session\SessionProvider;
+use Symfony\Bridge\Doctrine\Validator\DoctrineInitializer;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -13,34 +15,53 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Ratchet\Server\IoServer;
 use Ratchet\Http\HttpServer;
 use Ratchet\WebSocket\WsServer;
+use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 
 class SocketCommand extends Command
 {
     private $entityManager;
 
+    private $validator;
+
     private $dbOptions;
+
+    private $container;
+
+    private $dbConnection;
 
     /**
      * SocketCommand constructor.
      * @param EntityManagerInterface $entityManager
+     * @param ValidatorInterface $validator
      * @param null $name
      */
     public function __construct(
         EntityManagerInterface $entityManager,
+        ValidatorInterface $validator,
+        ContainerInterface $container,
         $name = null
     )
     {
         parent::__construct($name);
 
+        $this->container = $container;
         $this->entityManager = $entityManager;
+        $this->validator = $validator;
         $this->dbOptions = [
-            'db_table' => '',
+            'db_table' => 'sessions',
             'db_id_col' => 'sess_id',
             'db_data_col' => 'sess_data',
             'db_time_col' => 'sess_time',
             'db_lifetime_col' => 'sess_lifetime',
             'lock_mode' => 0,
+        ];
+        $this->dbConnection = [
+            'host' => 'localhost',
+            'dbName' => 'sessions',
+            'dbUser' => 'mysql',
+            'dbPassword' => 'mysql',
         ];
     }
 
@@ -48,12 +69,7 @@ class SocketCommand extends Command
     {
         $this->setName('sockets:start-chat')
             ->setHelp("Starts the chat socket demo")
-            ->setDescription('Starts the chat socket demo')
-            ->addArgument('host')
-            ->addArgument('dbName')
-            ->addArgument('dbUser')
-            ->addArgument('dbPassword')
-            ->addArgument('dbTable');
+            ->setDescription('Starts the chat socket demo');
     }
 
     /**
@@ -68,13 +84,8 @@ class SocketCommand extends Command
             'Starting chat, open your browser.',
         ]);
 
-        $this->dbOptions['db_table'] = $input->getArgument('dbTable');
-
         $pdoSessionHandler = new PdoSessionHandlerService(
-            $input->getArgument('host'),
-            $input->getArgument('dbName'),
-            $input->getArgument('dbUser'),
-            $input->getArgument('dbPassword'),
+            $this->dbConnection,
             $this->dbOptions
         );
 
@@ -82,7 +93,7 @@ class SocketCommand extends Command
             new HttpServer(
                 new WsServer(
                     new SessionProvider(
-                        new ChatServer($this->entityManager),
+                        new ChatServer($this->container, $this->validator),
                         $pdoSessionHandler->getPdoSessionHandler()
                     )
                 )

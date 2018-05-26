@@ -2,12 +2,18 @@
 
 namespace App\Server;
 
+use App\Entity\Message;
 use App\Entity\User;
+use App\Service\ChatServerService;
+use App\Service\DoctrineReconnectHelper;
+use App\Service\UserService;
+use Doctrine\DBAL\Driver\PDOException;
 use Doctrine\ORM\EntityManagerInterface;
+use Psr\Container\ContainerInterface;
 use Psr\Http\Message\RequestInterface;
 use Ratchet\Http\HttpServerInterface;
 use Ratchet\ConnectionInterface;
-use Symfony\Component\Validator\Constraints\DateTime;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class ChatServer implements HttpServerInterface
 {
@@ -15,65 +21,110 @@ class ChatServer implements HttpServerInterface
 
     private $entityManager;
 
-    public function __construct(EntityManagerInterface $entityManager)
+    private $userService;
+
+    private $chatServerService;
+
+    private $validator;
+
+    private $doctrineReconnect;
+
+    private $doctrine;
+
+    /**
+     * ChatServer constructor.
+     * @param ContainerInterface $container
+     * @param ValidatorInterface $validator
+     */
+    public function __construct(ContainerInterface $container, ValidatorInterface $validator)
     {
+        $this->doctrine = $container->get('doctrine');
         $this->clients = new \SplObjectStorage;
-        $this->entityManager = $entityManager;
+        $this->entityManager = $this->doctrine->getManager();
+        $this->validator = $validator;
+        $this->userService = new UserService($this->entityManager);
+        $this->chatServerService = new ChatServerService($this->entityManager, $this->userService);
+        $this->doctrineReconnect = new DoctrineReconnectHelper($this->entityManager);
     }
 
-    public function onOpen(ConnectionInterface $conn, RequestInterface $request = null)
+    /**
+     * @param ConnectionInterface $conn
+     * @param RequestInterface|null $request
+     */
+    public function onOpen(ConnectionInterface $conn, RequestInterface $request = null): void
     {
+        $this->clients->attach($conn);
+        $this->sendInformationToUsers(
+            $this->chatServerService->getUsersOnlineInformation($this->clients)
+        );
+    }
+
+    /**
+     * @param ConnectionInterface $conn
+     * @param string $msg
+     * @throws \Throwable
+     */
+    public function onMessage(ConnectionInterface $conn, $msg): void
+    {
+        echo "MESSAGE!";
+        $attempt = 2;
+        call:
         try {
-            print("new conection (" . $conn->Session->get('current_user_id') . ")");
-            // Store the new connection to send messages to later
-            $this->clients->attach($conn);
+            $attempt--;
+            $message = $this->chatServerService->getMessage($conn, $msg);
+            $errors = $this->validator->validate($message);
+            dump($message);
+            if (count($errors) == 0) {
+                $this->entityManager->persist($message);
+                $this->entityManager->flush();
+            } else {
+                dump($errors);
+                return;
+            }
 
-            echo "New connection! ({$conn->resourceId})\n";
+            $information = $this->chatServerService->getInformationForSending($conn, $message);
+            $this->sendInformationToUsers($information);
+
         } catch (\Throwable $exception) {
-            echo $exception->getMessage() . ' Shokovo!';
+            echo "EXC!!!";
+            echo $exception->getMessage();
+            if (!$attempt) {
+                return;
+                //throw $exception;
+            }
+            $this->entityManager = $this->doctrine->resetManager();
+            goto call;
         }
     }
 
-    public function onMessage(ConnectionInterface $from, $msg)
+    /**
+     * @param string $information
+     */
+    public function sendInformationToUsers(string $information): void
     {
-        $numRecv = count($this->clients) - 1;
-        echo sprintf('Connection %d sending message "%s" to %d other connection%s' . "\n"
-            , $from->resourceId, $msg, $numRecv, $numRecv == 1 ? '' : 's');
-
-        $user = $this->entityManager
-            ->getRepository(User::class)
-            ->find($from->Session->get('current_user_id'));
-
-        $user->setLastActivity(new DateTime());
-
-        $pattern = "/^((https?|ftp)\:\/\/)?([a-z0-9]{1})((\.[a-z0-9-])|([a-z0-9-]))*\.([a-z]{2,6})(\/?)$/";
-        $replace = "<a href=\"\\0\">\\0</a>";
-        $result = preg_replace($pattern, $replace, $msg);
-        echo $result;
-
-        //$array=json_decode($msg);
-
-        $message['message'] = $result;
-        $message['username'] = $user->getUsername();
-
         foreach ($this->clients as $client) {
-            // The sender is not the receiver, send to each client connected
-            $client->send(json_encode($message));
+            $client->send($information);
         }
     }
 
-    public function onClose(ConnectionInterface $conn)
+    /**
+     * @param ConnectionInterface $conn
+     */
+    public function onClose(ConnectionInterface $conn): void
     {
-        // The connection is closed, remove it, as we can no longer send it messages
         $this->clients->detach($conn);
-
-        echo "Connection {$conn->resourceId} has disconnected\n";
+        $this->sendInformationToUsers(
+            $this->chatServerService->getUsersOnlineInformation($this->clients)
+        );
     }
 
-    public function onError(ConnectionInterface $conn, \Exception $e)
+    /**
+     * @param ConnectionInterface $conn
+     * @param \Exception $e
+     */
+    public function onError(ConnectionInterface $conn, \Exception $e): void
     {
         echo "An error has occurred: {$e->getMessage()}\n";
-
         $conn->close();
     }
 }

@@ -20,27 +20,24 @@ class PdoSessionHandlerService
 
     private $dbOptions;
 
+    private $dbConnection;
+
     /**
      * PdoSessionHandlerService constructor.
-     * @param string $host
-     * @param string $dbName
-     * @param string $dbUser
-     * @param string $dbPassword
+     * @param array $dbConnection
      * @param array $dbOptions
      */
     public function __construct(
-        string $host,
-        string $dbName,
-        string $dbUser,
-        string $dbPassword,
+        array $dbConnection,
         array $dbOptions
     )
     {
-        $this->dbPassword = $dbPassword;
-        $this->dbName = $dbName;
-        $this->dbUser = $dbUser;
-        $this->host = $host;
+        $this->dbPassword = $dbConnection['dbPassword'];
+        $this->dbName = $dbConnection['dbName'];
+        $this->dbUser = $dbConnection['dbUser'];
+        $this->host = $dbConnection['host'];
         $this->dbOptions = $dbOptions;
+        $this->dbConnection = $dbConnection;
 
         $this->setPdoConnection();
     }
@@ -72,7 +69,7 @@ class PdoSessionHandlerService
      */
     public function getPdoSessionHandler(): SessionHandler
     {
-        return new SessionHandler($this->pdo, $this->dbOptions);
+        return new SessionHandler($this->dbConnection, $this->pdo, $this->dbOptions);
     }
 
 }
