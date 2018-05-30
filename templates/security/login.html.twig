@@ -1,35 +1,62 @@
 {% extends 'base.html.twig' %}
 
-{% block section_title %}Авторизация{% endblock %}
+{% block section_title %}Log In{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('build/css/security.css') }}">
+{% endblock %}
 
 {% block form %}
-    {{ form_start(form, {
-        'action': path('login'),
-        'method': 'POST',
-        'attr':{novalidate:'novalidate'},
-    }) }}
-    {% if authenticationError is defined and authenticationError  %}
-        <div class="alert alert-danger" role="alert">{{ authenticationError.messageKey|trans(authenticationError.messageData, 'security') }}</div>
-    {% endif %}
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-offset-3 col-md-offset-3">
+                <div class="container" style="margin-top:15px;">
+                    <div class="row">
+                        <div class="col-lg-5 col-md-6 my_block">
+                            {{ form_start(form, {
+                                'action': path('login'),
+                                'method': 'POST',
+                            }) }}
+                            {% if authenticationError is defined and authenticationError %}
+                                <div class="alert alert-danger"
+                                     role="alert">{{ authenticationError.messageKey|trans(authenticationError.messageData, 'security') }}
+                                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                            {% endif %}
 
-    <div class="form-group">
-        {{ form_label(form.username) }}
-        {{ form_errors(form.username) }}
+                            <div class="form-group">
+                                {{ form_label(form.username) }}
+                                {{ form_errors(form.username) }}
 
-        {{ form_widget(form.username,{
-            'value': lastUsername,
-        }) }}
-    </div>
-    <div class="form-group">
-        {{ form_row(form.password) }}
-    </div>
-    <div class="form-group">
-        {{ form_label(form.remember_me) }}
-        {{ form_widget(form.remember_me) }}
-    </div>
-    {{ form_widget(form.save, {
-        'attr': {'class': 'btn btn-success'},
-    }) }}
+                                {{ form_widget(form.username,{
+                                    'value': lastUsername,
+                                }) }}
+                            </div>
+                            <div class="form-group">
+                                {{ form_row(form.password) }}
+                            </div>
+                            <div class="form-group">
+                                {{ form_label(form.remember_me) }}
+                                {{ form_widget(form.remember_me) }}
+                            </div>
+                            <div class="text-center">
+                                {{ form_widget(form.save, {
+                                    'attr': {'class': 'btn'},
+                                }) }}
 
-    {{ form_end(form) }}
+                                {{ form_end(form) }}
+                            </div>
+                            <div class="text-center welcome-signup">
+                                Do not have an account? You can <a href="{{ path('signup') }}">Sign Up</a>.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
 {% endblock %}

@@ -2,6 +2,11 @@
 
 {% block section_title %}Чат{% endblock %}
 
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('build/css/chat_styles.css') }}">
+{% endblock %}
+
 {% block chat %}
 
     <div class="container">
@@ -24,14 +29,14 @@
                             <li class="dropdown">
                                 <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button"
                                    aria-haspopup="true"
-                                   aria-expanded="false"><i class="glyphicon glyphicon-user"></i> {{ user.getUsername }} <img
-                                                src="{{ asset('build/images/8IRJarkKo3c.jpg') }}" alt="" class="round_navbar">
+                                   aria-expanded="false"><i class="glyphicon glyphicon-user"></i> {{ user.getUsername }}
                                     <span
                                             class="caret"></span>
                                 </a>
                                 <ul class="dropdown-menu">
                                     <li class="dropdown-header">Actions</li>
-                                    <li><a href="{{ path('logout') }}">Logout <i class="glyphicon glyphicon-log-out"></i> </a></li>
+                                    <li><a href="{{ path('logout') }}">Logout <i
+                                                    class="glyphicon glyphicon-log-out"></i> </a></li>
                                 </ul>
                             </li>
                         </ul>
@@ -54,27 +59,53 @@
             <div class="col-lg-8">
                 <div class="message_block">
                     <div id="my_scroll_block">
+                        <div class="button_load text-center">
+                            <button class="btn btn-primary btn-load" id="load">
+                                <div class="load-wrapp">
+                                    <div class="load-3">
+                                        <div class="line"></div>
+                                        <div class="line"></div>
+                                        <div class="line"></div>
+                                        <div class="line"></div>
+                                    </div>
+                                </div>
+                                <span>Load previous messages</span>
+                            </button>
+                        </div>
                         <div id="status">
-
+                            {% if messages is defined %}
+                                {% for message in messages %}
+                                    <div class="panel panel-1">
+                                        <div class="row">
+                                            <div class="col-lg-12">
+                                                <div class="user"><span class="name"> {{ message.username }}</span><span
+                                                            class="date">2018-05-23 23:37:43</span>
+                                                </div>
+                                                <div class="message">{{ message.message | raw }}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            {% endif %}
                         </div>
                     </div>
                     <div class="input_field">
                         <form class="form" name="messages">
                             <div class="col-lg-10">
-                                <textarea placeholder="Input your message..." rows="20" id="text-for-sending" name="comment"
+                                <textarea placeholder="Input your message..." rows="20" id="text-for-sending"
+                                          name="comment"
                                           id="comment_text" cols="40" class="ui-autocomplete-input" autocomplete="off"
                                           role="textbox" aria-autocomplete="list" aria-haspopup="true"></textarea>
                             </div>
                             <div class="col-lg-2">
-                                <button id="myButton" type="button" class="btn  glyphicon glyphicon-send glyphicon-lg btn-send  "
+                                <button id="myButton" type="button"
+                                        class="btn  glyphicon glyphicon-send glyphicon-lg btn-send  "
                                         aria-label="Send" data-tttype="2"></button>
                             </div>
-                            <input type="submit" style="display: none"/>
                         </form>
                     </div>
                 </div>
             </div>
-
 
         </div>
 
@@ -84,4 +115,5 @@
 {% block javascripts %}
     {{ parent() }}
     <script type="text/javascript" src="{{ asset('build/js/sockets.js') }}"></script>
+    <script type="text/javascript" src="{{ asset('build/js/ajax_message_search.js') }}"></script>
 {% endblock %}

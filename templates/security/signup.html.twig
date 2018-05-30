@@ -2,20 +2,48 @@
 
 {% block section_title %}Регистрация{% endblock %}
 
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('build/css/security.css') }}">
+{% endblock %}
+
 {% block form %}
-    {{ form_start(form, {
-        'action': path('signup'),
-        'method': 'POST',
-        'attr':{novalidate:'novalidate'},
-    }) }}
-    <div class="form-group">
-        {{ form_row(form.username) }}
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-offset-3 col-md-offset-3">
+                <div class="container" style="margin-top:15px;">
+                    <div class="row">
+                        <div class="col-lg-5 col-md-6 my_block">
+                            {#{% if authenticationError is defined and authenticationError %}#}
+                            {#<div class="alert alert-danger"#}
+                            {#role="alert">{{ authenticationError.messageKey|trans(authenticationError.messageData, 'security') }}#}
+                            {#<button type="button" class="close" data-dismiss="alert" aria-label="Close">#}
+                            {#<span aria-hidden="true">&times;</span>#}
+                            {#</button>#}
+                            {#</div>#}
+                            {#{% endif %}#}
+                            {{ form_start(form, {
+                                'action': path('signup'),
+                                'method': 'POST',
+                                'attr':{novalidate:'novalidate'},
+                            }) }}
+                            <div class="form-group">
+                                {{ form_row(form.username) }}
+                            </div>
+                            <div class="form-group">
+                                {{ form_row(form.plainPassword) }}
+                            </div>
+                            <div class="text-center">
+                                {{ form_widget(form.confirm, {
+                                    'attr': {'class': 'btn'},
+                                }) }}
+                                {{ form_end(form) }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="form-group">
-        {{ form_row(form.plainPassword) }}
-    </div>
-    {{ form_widget(form.confirm, {
-        'attr': {'class': 'btn btn-success'},
-    }) }}
-    {{ form_end(form) }}
+
 {% endblock %}
