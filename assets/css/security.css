@@ -1,0 +1,20 @@
+body{
+    background-color: #edeef0;
+}
+
+.my_block{
+    background-color: #dae2eb;
+    padding-top: 20px;
+    padding-bottom: 20px;
+    border-radius: 10px;
+    color: #55677d;
+}
+
+.btn{
+    background-color: #4a76a8;
+    color: white;
+}
+
+.welcome-signup{
+    margin-top: 20px;
+}
