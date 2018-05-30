@@ -22,6 +22,20 @@ class MessageRepository extends EntityRepository
         parent::__construct($em, $class);
     }
 
+    /**
+     * @param int $limit
+     * @param int $offset
+     * @return mixed
+     */
+    public function findByOffset(int $limit, int $offset)
+    {
+        return $this->createQueryBuilder('m')
+            ->setFirstResult($offset)
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getArrayResult();
+    }
+
 //    /**
 //     * @return Message[] Returns an array of Message objects
 //     */

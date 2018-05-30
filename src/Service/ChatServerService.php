@@ -115,6 +115,8 @@ class ChatServerService
     {
         $text = trim($text);
 
+        $text = str_replace(array("\r\n", "\r", "\n"), "<br/>", $text);
+
         $func = function ($matches) {
             if (preg_match('/https?/ix', $matches[1])) {
                 $link = $matches[1];

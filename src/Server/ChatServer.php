@@ -33,18 +33,19 @@ class ChatServer implements HttpServerInterface
 
     /**
      * ChatServer constructor.
-     * @param ContainerInterface $container
+     * @param EntityManagerInterface $entityManager
      * @param ValidatorInterface $validator
      */
     public function __construct(ContainerInterface $container, ValidatorInterface $validator)
     {
-        $this->doctrine = $container->get('doctrine');
         $this->clients = new \SplObjectStorage;
+        $container->set('doctrine.orm.entity_manager', null);
+        $this->doctrine = $container->get('doctrine');
         $this->entityManager = $this->doctrine->getManager();
         $this->validator = $validator;
         $this->userService = new UserService($this->entityManager);
         $this->chatServerService = new ChatServerService($this->entityManager, $this->userService);
-        $this->doctrineReconnect = new DoctrineReconnectHelper($this->entityManager);
+//        $this->doctrineReconnect = new DoctrineReconnectHelper($this->entityManager);
     }
 
     /**
@@ -67,7 +68,9 @@ class ChatServer implements HttpServerInterface
     public function onMessage(ConnectionInterface $conn, $msg): void
     {
         echo "MESSAGE!";
-        $attempt = 2;
+        dump($this->entityManager);
+
+        $attempt = 3;
         call:
         try {
             $attempt--;
@@ -89,10 +92,14 @@ class ChatServer implements HttpServerInterface
             echo "EXC!!!";
             echo $exception->getMessage();
             if (!$attempt) {
+                dump($this->entityManager);
+                echo 'RETURN!';
                 return;
                 //throw $exception;
             }
-            $this->entityManager = $this->doctrine->resetManager();
+                dump($this->doctrine->resetManager());
+                $this->entityManager = $this->doctrine->getManager();
+                dump($this->entityManager->isOpen());
             goto call;
         }
     }

@@ -18,12 +18,12 @@ security:
                  login_path: login
                  check_path: login
                  provider: our_db_provider
-                 default_target_path: /
+                 default_target_path: /chat
                  username_parameter: "login[username]"
                  password_parameter: "login[password]"
              logout:
                  path: /logout
-                 target: /
+                 target: /login
 
              remember_me:
                  secret: '%kernel.secret%'
@@ -44,4 +44,4 @@ security:
     # Note: Only the *first* access control that matches will be used
     access_control:
         # - { path: ^/admin, roles: ROLE_ADMIN }
-        # - { path: ^/profile, roles: ROLE_USER }
+         - { path: ^/chat, roles: ROLE_USER }

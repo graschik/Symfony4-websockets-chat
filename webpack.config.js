@@ -13,9 +13,11 @@ Encore
     // uncomment to define the assets of the project
     .addEntry('js/sockets', './assets/js/sockets.js')
     .addEntry('js/app', './assets/js/app.js')
+    .addEntry('js/ajax_message_search', './assets/js/ajax_message_search.js')
 
     .addStyleEntry('css/app', './assets/css/app.scss')
     .addStyleEntry('css/chat_styles', './assets/css/chat_styles.css')
+    .addStyleEntry('css/security', './assets/css/security.css')
 
     // uncomment if you use Sass/SCSS files
     .enableSassLoader(function(sassOptions) {}, {

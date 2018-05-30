@@ -27,9 +27,9 @@ class SocketCommand extends Command
 
     private $dbOptions;
 
-    private $container;
-
     private $dbConnection;
+
+    private $container;
 
     /**
      * SocketCommand constructor.
@@ -46,9 +46,9 @@ class SocketCommand extends Command
     {
         parent::__construct($name);
 
-        $this->container = $container;
         $this->entityManager = $entityManager;
         $this->validator = $validator;
+        $this->container = $container;
         $this->dbOptions = [
             'db_table' => 'sessions',
             'db_id_col' => 'sess_id',

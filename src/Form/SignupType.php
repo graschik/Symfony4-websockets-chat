@@ -27,18 +27,20 @@ class SignupType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-            ->add('username', TextType::class)
+            ->add('username', TextType::class, [
+                'label' => 'Username:'
+            ])
             ->add('plainPassword', RepeatedType::class, [
                 'type' => PasswordType::class,
                 'first_options' => [
-                    'label' => 'Password'
+                    'label' => 'Password:'
                 ],
                 'second_options' => [
-                    'label' => 'Repeat password'
+                    'label' => 'Repeat password:'
                 ],
             ])
             ->add('confirm', SubmitType::class, [
-                'label' => 'Signup',
+                'label' => 'Signup:',
             ]);
     }
 
