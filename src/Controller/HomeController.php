@@ -16,13 +16,13 @@ use Symfony\Component\Routing\Annotation\Route;
 class HomeController extends Controller
 {
     /**
-     * @Route("/chat", name="home")
+     * @Route("/chat", name="chat")
      * @param Request $request
      * @param UserService $userService
      * @param MessageService $messageService
      * @return Response
      */
-    public function homeAction(
+    public function chatAction(
         Request $request,
         UserService $userService,
         MessageService $messageService
@@ -36,5 +36,15 @@ class HomeController extends Controller
             'user' => $userService->getUserById($this->getUser()->getId()),
             'messages' => $messageService->prepareMessagesForSending($messageService->getLastMessages()),
         ]);
+    }
+
+    /**
+     * @Route("/", name="home")
+     * @param Request $request
+     * @return \Symfony\Component\HttpFoundation\RedirectResponse
+     */
+    public function homeAction(Request $request)
+    {
+        return $this->redirectToRoute('chat');
     }
 }

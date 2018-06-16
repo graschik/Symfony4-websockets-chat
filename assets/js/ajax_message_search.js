@@ -31,7 +31,7 @@ $(document).ready(function () {
                         outResult += "<div class=\"panel panel-1\">\n" +
                             "           <div class=\"row\">\n" +
                             "             <div class=\"col-lg-12\">\n" +
-                            "                <div class=\"user\"><span class=\"name\">" + value.username + "</span><span class=\"date\">2018-05-23 23:37:43</span>\n" +
+                            "                <div class=\"user\"><span class=\"name\">" + value.username + "</span><span class=\"date\">"+ value.date+"</span>\n" +
                             "                </div>\n" +
                             "             <div class=\"message\">" + value.message + "</div>\n" +
                             "           </div>\n" +

@@ -41,7 +41,7 @@ class AjaxController extends Controller
      * @param MessageService $messageService
      * @return JsonResponse
      */
-    public function ajaxQuestionSearch(MessageService $messageService): JsonResponse
+    public function ajaxMessageLoad(MessageService $messageService): JsonResponse
     {
         $session = new Session();
         $messageCount = $session->get('current_message_count');

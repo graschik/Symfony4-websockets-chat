@@ -1,6 +1,6 @@
 {% extends 'base.html.twig' %}
 
-{% block section_title %}Регистрация{% endblock %}
+{% block title %}Sign Up{% endblock %}
 
 {% block stylesheets %}
     {{ parent() }}
@@ -29,6 +29,7 @@
                             }) }}
                             <div class="form-group">
                                 {{ form_row(form.username) }}
+
                             </div>
                             <div class="form-group">
                                 {{ form_row(form.plainPassword) }}

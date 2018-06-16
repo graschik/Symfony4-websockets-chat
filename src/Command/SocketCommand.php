@@ -15,6 +15,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Ratchet\Server\IoServer;
 use Ratchet\Http\HttpServer;
 use Ratchet\WebSocket\WsServer;
+use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
@@ -29,8 +30,6 @@ class SocketCommand extends Command
 
     private $dbConnection;
 
-    private $container;
-
     /**
      * SocketCommand constructor.
      * @param EntityManagerInterface $entityManager
@@ -40,7 +39,6 @@ class SocketCommand extends Command
     public function __construct(
         EntityManagerInterface $entityManager,
         ValidatorInterface $validator,
-        ContainerInterface $container,
         $name = null
     )
     {
@@ -48,7 +46,6 @@ class SocketCommand extends Command
 
         $this->entityManager = $entityManager;
         $this->validator = $validator;
-        $this->container = $container;
         $this->dbOptions = [
             'db_table' => 'sessions',
             'db_id_col' => 'sess_id',
@@ -78,11 +75,7 @@ class SocketCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output): void
     {
-        $output->writeln([
-            'Chat socket',
-            '============',
-            'Starting chat, open your browser.',
-        ]);
+        $io = new SymfonyStyle($input, $output);
 
         $pdoSessionHandler = new PdoSessionHandlerService(
             $this->dbConnection,
@@ -93,13 +86,18 @@ class SocketCommand extends Command
             new HttpServer(
                 new WsServer(
                     new SessionProvider(
-                        new ChatServer($this->container, $this->validator),
+                        new ChatServer($this->entityManager, $this->validator),
                         $pdoSessionHandler->getPdoSessionHandler()
                     )
                 )
             ),
             8080
         );
+
+        $io->success([
+            'ChatServer was successfully launched',
+            'Starting chat, open your browser.',
+        ]);
 
         $server->run();
     }

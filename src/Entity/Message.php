@@ -19,14 +19,12 @@ class Message
 
     /**
      * @ORM\Column(type="string", length=255)
-     * @Assert\Length(max="255", min="1")
+     * @Assert\Length(max="5555", min="1")
      */
     private $text;
 
     /**
-     * @var \DateTime
-     *
-     * @ORM\Column(name="date", type="date")
+     * @ORM\Column(name="date", type="string")
      */
     private $date;
 
@@ -53,17 +51,16 @@ class Message
     }
 
     /**
-     * @return \DateTime
      */
-    public function getDate(): \DateTime
+    public function getDate()
     {
         return $this->date;
     }
 
     /**
-     * @param \DateTime $date
+     * @param string $date
      */
-    public function setDate(\DateTime $date)
+    public function setDate(string $date)
     {
         $this->date = $date;
     }

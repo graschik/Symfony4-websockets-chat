@@ -26,7 +26,7 @@ class ChatServerService
      * @param EntityManagerInterface $entityManager
      * @param UserService $userService
      */
-    public function __construct(ObjectManager $entityManager, UserService $userService)
+    public function __construct(EntityManagerInterface $entityManager, UserService $userService)
     {
         $this->entityManager = $entityManager;
         $this->userService = $userService;
@@ -60,7 +60,7 @@ class ChatServerService
     {
         $message = new Message();
         $message->setText($this->prepareText($text));
-        $message->setDate((new \DateTime('now')));
+        $message->setDate((new \DateTime())->format('Y-m-d'));
         $message->setUserId($connection->Session->get(self::USER_ID));
 
         return $message;

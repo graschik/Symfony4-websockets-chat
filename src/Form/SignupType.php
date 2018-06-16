@@ -28,19 +28,28 @@ class SignupType extends AbstractType
     {
         $builder
             ->add('username', TextType::class, [
-                'label' => 'Username:'
+                'label' => 'Username:',
+                'attr'=>[
+                    'placeholder'=>'Enter username'
+                ]
             ])
             ->add('plainPassword', RepeatedType::class, [
                 'type' => PasswordType::class,
                 'first_options' => [
-                    'label' => 'Password:'
+                    'label' => 'Password:',
+                    'attr'=>[
+                        'placeholder'=>'Enter password'
+                    ]
                 ],
                 'second_options' => [
-                    'label' => 'Repeat password:'
+                    'label' => 'Repeat password:',
+                    'attr'=>[
+                        'placeholder'=>'Repeat password'
+                    ]
                 ],
             ])
             ->add('confirm', SubmitType::class, [
-                'label' => 'Signup:',
+                'label' => 'Sign Up',
             ]);
     }
 

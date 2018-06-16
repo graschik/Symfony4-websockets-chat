@@ -23,12 +23,13 @@ $(document).ready(function () {
                         "        </div>\n";
                 }
                 $("#users_status").append(users);
+                $(".count").empty().append(message.users.length+" users online");
                 break;
             case 'message':
                 var message_block = "<div class=\"panel panel-1\">\n" +
                     "           <div class=\"row\">\n" +
                     "             <div class=\"col-lg-12\">\n" +
-                    "                <div class=\"user\"><span class=\"name\">" + message.username + "</span><span class=\"date\">2018-05-23 23:37:43</span>\n" +
+                    "                <div class=\"user\"><span class=\"name\">" + message.username + "</span><span class=\"date\">"+ message.date+"</span>\n" +
                     "                </div>\n" +
                     "             <div class=\"message\">" + message.message + "</div>\n" +
                     "           </div>\n" +

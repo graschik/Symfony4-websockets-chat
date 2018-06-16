@@ -27,8 +27,6 @@ class ChatServer implements HttpServerInterface
 
     private $validator;
 
-    private $doctrineReconnect;
-
     private $doctrine;
 
     /**
@@ -36,16 +34,13 @@ class ChatServer implements HttpServerInterface
      * @param EntityManagerInterface $entityManager
      * @param ValidatorInterface $validator
      */
-    public function __construct(ContainerInterface $container, ValidatorInterface $validator)
+    public function __construct(EntityManagerInterface $entityManager, ValidatorInterface $validator)
     {
         $this->clients = new \SplObjectStorage;
-        $container->set('doctrine.orm.entity_manager', null);
-        $this->doctrine = $container->get('doctrine');
-        $this->entityManager = $this->doctrine->getManager();
+        $this->entityManager = $entityManager;
         $this->validator = $validator;
         $this->userService = new UserService($this->entityManager);
         $this->chatServerService = new ChatServerService($this->entityManager, $this->userService);
-//        $this->doctrineReconnect = new DoctrineReconnectHelper($this->entityManager);
     }
 
     /**
@@ -67,41 +62,20 @@ class ChatServer implements HttpServerInterface
      */
     public function onMessage(ConnectionInterface $conn, $msg): void
     {
-        echo "MESSAGE!";
-        dump($this->entityManager);
+        $message = $this->chatServerService->getMessage($conn, $msg);
+        $errors = $this->validator->validate($message);
+        dump($message);
 
-        $attempt = 3;
-        call:
-        try {
-            $attempt--;
-            $message = $this->chatServerService->getMessage($conn, $msg);
-            $errors = $this->validator->validate($message);
-            dump($message);
-            if (count($errors) == 0) {
-                $this->entityManager->persist($message);
-                $this->entityManager->flush();
-            } else {
-                dump($errors);
-                return;
-            }
-
-            $information = $this->chatServerService->getInformationForSending($conn, $message);
-            $this->sendInformationToUsers($information);
-
-        } catch (\Throwable $exception) {
-            echo "EXC!!!";
-            echo $exception->getMessage();
-            if (!$attempt) {
-                dump($this->entityManager);
-                echo 'RETURN!';
-                return;
-                //throw $exception;
-            }
-                dump($this->doctrine->resetManager());
-                $this->entityManager = $this->doctrine->getManager();
-                dump($this->entityManager->isOpen());
-            goto call;
+        if (count($errors) == 0) {
+            $this->entityManager->persist($message);
+            $this->entityManager->flush();
+        } else {
+            dump($errors);
+            return;
         }
+
+        $information = $this->chatServerService->getInformationForSending($conn, $message);
+        $this->sendInformationToUsers($information);
     }
 
     /**
